@@ -33,7 +33,7 @@ python3 pressure_test.py
 python3 draw_chart.py
 ```
 
-![performace](/echo_server/performance.PNG)
+![performace](/performance.PNG)
 
 
 ## Reference
