@@ -9,7 +9,7 @@ elapsed_time = [0.5, 2, 28, 326, 2563, 24879]
 connections = [0, 1, 2, 3, 4, 5]
 
 plt.figure(figsize=(15,10),dpi=100,linewidth = 2)
-plt.plot(connections, elapsed_time,'o-',color = 'b', label="elpased time")
+plt.plot(connections, elapsed_time,'o-',color = 'b', label="elapsed time")
 
 
 plt.xticks(fontsize=20)
