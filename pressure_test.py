@@ -4,7 +4,7 @@ import asyncio
 import time
 import socket
 
-connection_num = 10000
+connection_num = 100000
 SERVER = "127.0.0.1"
 PORT = 1234
 
@@ -26,11 +26,15 @@ async def main():
     for i in range(connection_num):
         tasks.append(asyncio.create_task(request_server(('thread '+str(i)).encode())))
 
-    print(f"started at {time.strftime('%X')}")
+    now = time.time_ns()
+    print(f"started at {now} ns")
+
     for task in tasks:
         await task
-
-    print(f"finished at {time.strftime('%X')}")
+    
+    end = time.time_ns()
+    print(f"finished at {end} ns")
+    print(f"elapsed time: {(end - now)//(1e6)} ms")
 
 
 asyncio.run(main())
