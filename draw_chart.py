@@ -15,7 +15,7 @@ plt.plot(connections, elapsed_time,'o-',color = 'b', label="elpased time")
 plt.xticks(fontsize=20)
 plt.yticks(fontsize=20)
 
-plt.xlabel("log10(client nubmer)", fontsize=30, labelpad = 15)
+plt.xlabel("log10(client number)", fontsize=30, labelpad = 15)
 plt.ylabel("ms", fontsize=30, labelpad = 20)
 
 plt.legend(loc = "best", fontsize=20)
