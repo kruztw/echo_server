@@ -27,4 +27,8 @@ type anything and server will echo back same thing.
 python3 pressure_test.py
 ```
 
+## Reference
+
+server.cpp was edited from [here](https://cppsecrets.com/users/2194110105107104105108981049711648504964103109971051084699111109/C00-Networking-Threaded-echo-server.php)
+
 
