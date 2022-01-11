@@ -1,4 +1,3 @@
-#include <cstdio>
 #include <iostream>
 #include <cstring>
 #include <netinet/in.h>
@@ -6,6 +5,7 @@
 #include <pthread.h>
 
 using std::cout;
+using std::cerr;
 
 
 constexpr int BUF_SIZE = 1024;
@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 
 
   if (argc != 2) {
-    fprintf(stderr, "usage: %s <port>\n", argv[0]);
+    cerr << "usage: " << argv[0] << " <port>\n";
     exit(1);
   }
 
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 
     cout << "Connected!\n";
     if (int tid = pthread_create(&thread, NULL, &handle_client, childfd); tid < 0) {
-      fprintf(stderr, "thread create failed (%d)\n", tid);
+      cerr << "thread create failed (" << tid << ")\n";
       delete childfd;
     }
   }
