@@ -34,6 +34,12 @@ void echoBack(int sockfd)
   int n;
   char buf[BUF_SIZE] = {};
   
+  // Avoid thread occupies SIGTERM handler
+  sigset_t mask;
+  sigemptyset(&mask);
+  sigaddset(&mask, SIGTERM);
+  pthread_sigmask(SIG_BLOCK, &mask, NULL);
+
   again:
     while ((n = recv(sockfd, buf, BUF_SIZE, 0)) > 0)
       send(sockfd, buf, n, 0);
@@ -42,10 +48,16 @@ void echoBack(int sockfd)
       if(errno == EINTR) { // Interrupt occured
         goto again;
       }
+      else if (errno == ECONNRESET) { // client disconnect
+        goto disconnect;
+      }
       else {
         error("Echo error : ");
       }
     }
+
+  disconnect:
+    return;
 }
 
 void *handle_client(void *arg)
