@@ -34,7 +34,7 @@ void echoBack(int sockfd)
   int n;
   char buf[BUF_SIZE] = {};
   
-  // Avoid thread occupies SIGTERM handler
+  // Avoid thread occupies SIGTERM handler and make sure async signal safe
   sigset_t mask;
   sigemptyset(&mask);
   sigaddset(&mask, SIGTERM);
