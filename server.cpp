@@ -3,6 +3,7 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <csignal>
 
 using std::cout;
 using std::cerr;
@@ -12,6 +13,7 @@ constexpr int BUF_SIZE = 1024;
 constexpr int MAX_CONN = 10000;
 
 void *handle_client(void *arg);
+void init();
 
 
 void error(const char *msg)
@@ -20,6 +22,11 @@ void error(const char *msg)
   exit(1);
 }
 
+void sigtermHandler(int sigNum)
+{
+  cerr << "Received SIGTERM\n";
+  exit(1);
+}
 
 // Echos back the messages received from clients
 void echoBack(int sockfd)
@@ -41,7 +48,6 @@ void echoBack(int sockfd)
     }
 }
 
-
 void *handle_client(void *arg)
 {
   int child_fd = *(int *)arg;
@@ -55,6 +61,14 @@ void *handle_client(void *arg)
   return NULL;
 }
 
+// set signal handler
+void init()
+{
+  if (signal(SIGTERM, sigtermHandler) == SIG_ERR) {
+    error("setting signal failed\n");
+  }
+}
+
 
 int main(int argc, char **argv)
 {
@@ -66,6 +80,8 @@ int main(int argc, char **argv)
     cerr << "usage: " << argv[0] << " <port>\n";
     exit(1);
   }
+
+  init();
 
   portno = atoi(argv[1]);
   int parentfd = socket(AF_INET, SOCK_STREAM, 0);
