@@ -24,7 +24,12 @@ type anything and server will echo back same thing.
 ## Pressure Test
 
 ```shell=
+# python version
 python3 pressure_test.py
+
+# CPP version
+make
+./pressure_test
 ```
 
 ## Performance
