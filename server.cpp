@@ -137,8 +137,8 @@ static void echoBack(Conn *conn)
   const int sockfd = conn->getChildFD();
   
   again:
-    //pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-    while ((n = recv(sockfd, buf, BUF_SIZE, MSG_DONTWAIT)) > 0) {
+    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+    while ((n = recv(sockfd, buf, BUF_SIZE, 0)) > 0) {
       sendAgain:
         if (int tmp = send(sockfd, buf, n, 0); tmp < 0) {
           if (errno == EINTR) {
@@ -149,10 +149,7 @@ static void echoBack(Conn *conn)
             error("Echo error : ");
           }
         }
-
-
     }
-
 
     if (shutdown_event && conn->getState() != State::kShutdown) {
       char msg[0x100];
@@ -171,7 +168,7 @@ static void echoBack(Conn *conn)
       conn->setState(State::kShutdown);
     }
 
-    //pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 
     if (n < 0) {
       if(errno == EINTR || errno == EAGAIN) {
@@ -183,7 +180,6 @@ static void echoBack(Conn *conn)
       }
     }
     
-
   disconnect:
     return;
 }
@@ -222,7 +218,6 @@ int main(int argc, char **argv)
   struct sockaddr_in server_addr, client_addr; 
   int portno;
 
-
   if (argc != 2) {
     cerr << "usage: " << argv[0] << " <port>\n";
     exit(1);
@@ -237,7 +232,12 @@ int main(int argc, char **argv)
     error("ERROR opening socket");
 
   int optval = SOL_SOCKET;
-  setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int));
+  if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int)) < 0)
+    error("ERROR setsockopt SO_REUSEADDR");
+
+  struct timeval timeout = {1, 0}; // 1s
+  if(setsockopt(server_fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0)
+    error("ERROR setsockopt SO_RCVTIMEO");
 
   memset((char *)&server_addr, 0, sizeof(server_addr));
 
@@ -255,13 +255,13 @@ int main(int argc, char **argv)
 
   int clilen = sizeof(client_addr);
 
+  cout << "Waiting for connections...\n";
   while (true) {
-    cout << "Waiting for connections...\n";
     int child_fd = accept(server_fd, (struct sockaddr *)&client_addr,
 		                      (socklen_t *)&clilen);
 
     if (child_fd < 0 ) {
-      if (errno != EINTR) {
+      if (errno != EINTR && errno != EAGAIN) {
         error("ERROR on accept");
       } else {
         continue;
@@ -277,4 +277,6 @@ int main(int argc, char **argv)
       delete conn;
     }
   }
+
+  return 0;
 }
