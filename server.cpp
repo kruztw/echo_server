@@ -78,14 +78,11 @@ private:
 };
 
 
-
-
 void error(const char *msg)
 {
   perror(msg);
   exit(1);
 }
-
 
 static void sigtermHandler(int sigNum)
 {
@@ -96,6 +93,7 @@ static void sigtermHandler(int sigNum)
   // make sure each connections is disconnected before we leave.
   for (int i = 0; i < MAX_TERM_TIME; ++i) {
     sleep(1);
+
     int j;
     for (j = 0; j < MAX_CONN; ++j)
       if (conns[j])
@@ -106,27 +104,27 @@ static void sigtermHandler(int sigNum)
   }
 
 
-// Force shutdown
-forece_shutdown:
-  // TODO: It might cause starvation if there are plenty of clients attemp to connect.
-  //       However, the number of concurrent connections is limited by MAX_CONNS.
-  //       So, it is far away to cause starvation.
-  {
-    cerr << "Time's up. Force shutdown ..." << endl;
-    std::unique_lock<mutex> lock(conns_lock, std::defer_lock);
+  // Force shutdown
+  forece_shutdown:
+    // TODO: It might cause starvation if there are plenty of clients attemp to connect.
+    //       However, the number of concurrent connections is limited by MAX_CONNS.
+    //       So, it is far away to cause starvation.
+    {
+      cerr << "Time's up. Force shutdown ..." << endl;
+      std::unique_lock<mutex> lock(conns_lock, std::defer_lock);
 
-    lock.lock();
-    for (int i = 0; i < MAX_CONN; ++i) {
-      if (conns[i] && pthread_cancel(*conns[i]) < 0)
-          error("pthread_cacnel");
+      lock.lock();
+      for (int i = 0; i < MAX_CONN; ++i) {
+        if (conns[i] && pthread_cancel(*conns[i]) < 0)
+            error("pthread_cacnel");
+      }
+      lock.unlock();
+
+      cerr << "shutdown" << endl;
     }
-    lock.unlock();
 
-    cerr << "shutdown" << endl;
-  }
-
-shutdown:
-  exit(1);
+  shutdown:
+    exit(1);
 }
 
 // Echos back the messages received from clients
@@ -156,16 +154,16 @@ static void echoBack(Conn *conn)
       snprintf(msg, sizeof(msg), "Server will shutdown in %d seconds !\n", MAX_TERM_TIME);
 
       sendAgain2:
-      if (int tmp = send(sockfd, msg, strlen(msg), 0); tmp < 0) {
-        if (errno == EINTR) {
-          goto sendAgain2;
-        } else if (errno == ECONNRESET) {
-          goto disconnect;
-        } else {
-          error("Echo error : ");
+        if (int tmp = send(sockfd, msg, strlen(msg), 0); tmp < 0) {
+          if (errno == EINTR) {
+            goto sendAgain2;
+          } else if (errno == ECONNRESET) {
+            goto disconnect;
+          } else {
+            error("Echo error : ");
+          }
         }
-      }
-      conn->setState(State::kShutdown);
+        conn->setState(State::kShutdown);
     }
 
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
